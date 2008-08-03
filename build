@@ -1,0 +1,11 @@
+#!/bin/sh
+
+make clean
+make
+cp -i xstress.conf ./bin
+
+echo ""
+echo "Move to ./bin folder and type ./xstress to run the tool"
+echo "For help read the provided README file."
+echo "Thank you for using xstress"
+echo ""
