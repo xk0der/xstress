@@ -38,7 +38,7 @@ const string DEFAULT_CONFIG_FILE="xstress.conf";
 const string DEFAULT_LOG_FILE="xstress.log";
 const int DEFAULT_CACHE_THRESHOLD = 1024*4;
 
-const string VERSION="xstress version 0.34 - xk0derz SMTP Stress Tester";
+const string VERSION="xstress version 0.36b - xk0derz SMTP Stress Tester";
 const string COPYRIGHT="(c) 2007 Amit Singh (aka xk0der), amitcz@yahoo.com\n"
            "This software and related files are licensed under GNU GPL version 2\n"
            "Please visit the following webpage for more details\n"
@@ -127,6 +127,7 @@ enum eConfigVars
   C_TIMEOUT,
   C_REPORT_AFTER,
   C_LOG_TIMEOUT,
+  C_MAX_RECIPIENTS,
   C_MAX
 };
 

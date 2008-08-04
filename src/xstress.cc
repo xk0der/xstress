@@ -60,7 +60,7 @@ void threadSigHandler(int iSig)
   threadForceQuit = true;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 
   char buffer[1024];

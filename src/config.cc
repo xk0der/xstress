@@ -35,6 +35,7 @@ const char * ConfigVarsStr[]=
   "TIMEOUT",
   "REPORT_AFTER",
   "LOG_TIMEOUT",
+  "MAX_RECIPIENTS"
   " "
 };
 
@@ -121,6 +122,7 @@ Config::Config(string sConfigFile)
   uiMailsPerThread = 0;
   uiReportAfter = 0;
   uiLogTimeout = 1;
+  uiMaxRecipients = 1;
 
   if(!filp.fail())
   {
@@ -197,7 +199,9 @@ Config::Config(string sConfigFile)
                 logger.log("Invalid value for LOG_TIMEOUT, use 'false' or 'true'.");
                 uiLogTimeout = 1;
               }
-
+              break;
+            case C_MAX_RECIPIENTS:
+              uiMaxRecipients = atoi(RValue.c_str());
               break;
           }
 

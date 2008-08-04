@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const char * cmdOptStr[]=
+const char *cmdOptStr[]=
 {
   "  ",
   "-v",
@@ -70,7 +70,7 @@ UserInterface::UserInterface()
   uiOverride = false;
 }
 
-int UserInterface::processOptions(int argc, char *argv[])
+int UserInterface::processOptions(int argc, const char *argv[])
 {
   string sOpt, sVal;
   int iRetVal = true,ii,jj;

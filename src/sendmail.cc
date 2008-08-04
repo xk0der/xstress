@@ -89,7 +89,7 @@ void SendMail::setMailInfo
 
 int SendMail::changeState(int sockState)
 {
-  int rv;
+  int rv = NO_ERR;
   if(iState == FINISHED) return 0;
 
   //cout << "last State = " << uiLastState << " Curr State " << iState << endl; 
@@ -171,6 +171,7 @@ int SendMail::changeState(int sockState)
    if(uiStateCounter>10) return ERR_IO;
 */
   }
+  return NO_ERR;
 }
 
 int SendMail::run(int sockState)
@@ -487,7 +488,7 @@ int SendMail::run(int sockState)
       break;
   }
 
-  return 0;
+  return NO_ERR;
 }
 
 void SendMail::setTo(string _sTo)
@@ -533,4 +534,5 @@ int SendMail::setServer(string _ip, unsigned int _port)
 {
   sServerIP = _ip;
   uiServerPort = _port;
+  return NO_ERR;
 }

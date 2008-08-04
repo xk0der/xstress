@@ -29,6 +29,7 @@ class Config
   unsigned int uiTimeout;
   unsigned int uiReportAfter;
   unsigned int uiLogTimeout;
+  unsigned int uiMaxRecipients;
 
   private:
   vector <string> toList; 

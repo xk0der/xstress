@@ -31,7 +31,7 @@ class UserInterface
    int uiTimeout;
 
    UserInterface();
-   int processOptions(int argc, char *argv[]);
+   int processOptions(int argc, const char *argv[]);
    unsigned int override();
    void setConfig(Config &configObj);
 };

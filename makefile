@@ -13,16 +13,18 @@
 # and help of editing the configuration file
 #
 
-OBJ_DIR=obj
-SRC_DIR=src
-INCLUDE_DIR=include
-BIN_DIR=bin
+OBJ_DIR=./obj
+SRC_DIR=./src
+INCLUDE_DIR=./include
+BIN_DIR=./bin
 
 OBJS=$(OBJ_DIR)/xstress.o $(OBJ_DIR)/sendmail.o \
      $(OBJ_DIR)/config.o \
      $(OBJ_DIR)/thread.o \
      $(OBJ_DIR)/logger.o \
      $(OBJ_DIR)/userinterface.o
+
+SRC=$(addsuffix .cc, $(basename $(subst $(OBJ_DIR),$(SRC_DIR),$(OBJS))))
 
 B64_SRC=$(SRC_DIR)/b64.c
 B64_OUT=$(BIN_DIR)/base64
@@ -37,18 +39,19 @@ LD=ld
 .PHONY: all
 .PHONY: clean
 
-all: $(PROG)
+all: $(OBJS) $(B64_OUT)
+	$(GPP) -o $(PROG) $(OBJS)
+	cp -i xstress.conf $(BIN_DIR)
 
 $(OBJS):
-	$(GPP) $(addsuffix .cc, $(basename $(subst $(OBJ_DIR),$(SRC_DIR),$@))) -c  -I$(INCLUDE_DIR) -o $@
-
-$(PROG): $(OBJS) $(B64_OUT)
-	$(GPP) $(OBJS) -o $(PROG)
+	$(GPP) -c $(SRC) -I $(INCLUDE_DIR)
+	mv *.o $(OBJ_DIR)
 
 $(B64_OUT):
 	$(GCC) $(B64_SRC) -o $(B64_OUT)
 
 clean:
+	rm -f *.o
 	rm -f $(OBJS)
 	rm -f $(PROG)
 	rm -f $(B64_OUT)

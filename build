@@ -2,7 +2,6 @@
 
 make clean
 make
-cp -i xstress.conf ./bin
 
 echo ""
 echo "Move to ./bin folder and type ./xstress to run the tool"
