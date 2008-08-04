@@ -114,7 +114,7 @@ enum eSections
   S_MAX
 };
 
-extern char *SectionsStr[];
+extern const char *SectionsStr[];
 
 enum eConfigVars 
 {
@@ -130,7 +130,7 @@ enum eConfigVars
   C_MAX
 };
 
-extern char * ConfigVarsStr[];
+extern const char * ConfigVarsStr[];
 
 enum eError
 {

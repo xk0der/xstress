@@ -16,7 +16,7 @@
 
 using namespace std;
 
-char *cmdOptStr[]=
+const char * cmdOptStr[]=
 {
   "  ",
   "-v",

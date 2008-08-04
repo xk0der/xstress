@@ -12,10 +12,12 @@
 #include "logger.h"
 #include "sendmail.h"
 #include <fstream>
+#include <cstdlib>
+#include <cstring>
 
 using namespace std;
 
-char *MIMETypeStr[]=
+const char *MIMETypeStr[]=
 {
   " ",
   "plain",
@@ -257,8 +259,8 @@ int SendMail::run(int sockState)
             time_t currTS;
             unsigned int tzHr, tzMin;
             char tzSign;
-            char *pcWDay[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
-            char *pcMonth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            const char *pcWDay[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+            const char *pcMonth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
             time(&currTS);
