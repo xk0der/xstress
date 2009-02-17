@@ -1,8 +1,8 @@
 # MakeFile
 # xstress - xk0derz SMTP Stress Tester
 #
-# (c) Amit Singh, amitcz@yahoo.com
-# http://xk0der.wordpress.com
+# (c) Amit Singh, amit@xkoder.com
+# http://xkoder.com
 #
 # This software and related files are licensed under GNU GPL version 2
 # Please visit the following webpage for more details

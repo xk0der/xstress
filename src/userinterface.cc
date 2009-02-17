@@ -1,8 +1,8 @@
 /*
  * xstress - xk0derz SMTP Stress Tester
  *
- * (c) Amit Singh, amitcz@yahoo.com
- * xk0der.wordpress.com
+ * (c) Amit Singh amit@xkoder.com
+ * http://xkoder.com
  *
  * This software and related files are licensed under GNU GPL version 2
  * Please visit the following webpage for more details
@@ -223,7 +223,7 @@ int UserInterface::processOptions(int argc, const char *argv[])
               cout << "Foundation, Inc., 51 Franklin Street, Fifth Floor,";
               cout << " Boston, MA  02110-1301, USA." << endl;
               cout << endl;
-              cout << "You may contact the author at amitcz@yahoo.com" << endl;
+              cout << "You may contact the author at amit@xkoder.com" << endl;
 
               iRetVal = false;
 
