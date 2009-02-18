@@ -1,4 +1,4 @@
-xstress version 0.36 beta - xk0derz SMTP Stress Tester
+xstress version 0.37 beta - xk0derz SMTP Stress Tester
 
 http://xstress.sourceforge.net
 
@@ -105,22 +105,47 @@ Syntax:
 Here options are one or more of the following...
 
 -v, --ver, --version           Display xstress version and exit.
+
 -h, --help                     Display this help message
+
 -t <value>, --threads <value>  Set number of threads to spawn.
                                Range for value is 1 to 100, inclusive.
+
 -m <value>, --mails <value>    Set number of mails to send per thread.
                                range for value is 0 to 60000, inclusive.
                                * A Value of 0 for mails means unlimited mail.
+
 -s <IP>, --server <IP>         Set the mail server IP
                                IP is in dotted decimal format
+
 -p <value>, --port <value>     Set the mail server port
                                value is the port number of the mail server
+
+-u <username>                  You SMTP server username.
+--username <username>
+
+-P <password>                  Password for the username you specified using
+--password <password>          the -u or --username switch.
+                                
+                               * Username and password both have to be provided
+                               for authentication to work.
+                               If either is not specified, authentication will
+                               be skipped.
+
+-a <type>, --auth-type <type>  Authentication mechanism to use.
+                               * Currently only PLAIN is supported.
+
 --timeout <value>              Set connection timeout (in seconds)
                                values is a non zero positive integer
+
 --conf <filename>              Configuration file to use, instead of the
                                default file 'xstress.conf'.
                                `filename` is the full path to the alternate
                                configuration file.
+
+-d, --debug                    If this switch is specified, verbose debug messages
+                               with complete traffic will be printed on screen.
+
 --logfile <filename>           Set alternate log file to use, instead of the
                                default 'xstress.log' file.
                                `filename` is the full path to the alternate
@@ -196,6 +221,15 @@ SERVER - Specify the SMTP Mail Server's IP here.
 PORT - Specify the SMTP Mail Server's port number here.
        This is typically 25.
 
+USERNMAE - Your SMTP server username.
+PASSWORD - Password for your username.
+
+AUTH_TYPE - Authentication mechanism to use. 
+            Currently only PLAIN is supported.
+
+DEBUG - set to true if you want debug messages with complete traffic printed
+        on scree. Default value is false.
+
 THREADS - Specify number of threads to spwan
           The value can range from 1 to 60000
             
@@ -212,7 +246,7 @@ MAILS_PER_THREAD - Speciy the number of mails to be sent per
                    thread. You have to use ^C (control + C) to quit
                    xstress if you use ZERO for this variable.
 
-REPORT_ATER - Specify the number of mails, after which xstress will
+REPORT_AFTER - Specify the number of mails, after which xstress will
               print a message on screen.
 
               A Value of ZERO means print no message.

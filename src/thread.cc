@@ -136,6 +136,24 @@ void Thread::process()
   if(rv==1 && ((fds[0].revents & POLLIN)  || (fds[0].revents & POLLOUT)))
   {
     ulLastTS = time(NULL);
+    
+    if(mailObj.state()==FINISHED)
+    {
+      uiMailsSend++;
+      uiReportCnt++;
+
+      if(uiMailsSend>=0xFFFFFFFF)
+      {
+        char cBuf[200];
+        sprintf(cBuf,"Sent %ld mails, reseting counter to Zero.",0xFFFFFFFF);
+        logger.log(cBuf);
+        uiMailsSend=0;
+      }
+      initMailObj();
+      uiEventToPoll = POLLOUT;
+      return;
+    }
+    
     if((fds[0].revents & POLLIN)==POLLIN)
     {
       uiEventToPoll = POLLOUT;
@@ -149,6 +167,7 @@ void Thread::process()
 
       //return;
     }
+    
 
     if((fds[0].revents & POLLOUT)==POLLOUT || mailObj.state()==MAIL)
     {
@@ -176,21 +195,6 @@ void Thread::process()
       
     }
 
-    if(mailObj.state()==FINISHED)
-    {
-      uiMailsSend++;
-      uiReportCnt++;
-
-      if(uiMailsSend>=0xFFFFFFFF)
-      {
-        char cBuf[200];
-        sprintf(cBuf,"Sent %ld mails, reseting counter to Zero.",0xFFFFFFFF);
-        logger.log(cBuf);
-        uiMailsSend=0;
-      }
-      initMailObj();
-      uiEventToPoll = POLLOUT; 
-    }
   }
  
   //cout << "Elapsed Time: " << (time(NULL)-ulLastTS) << endl;

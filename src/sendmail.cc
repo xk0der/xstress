@@ -115,8 +115,7 @@ int SendMail::changeState(int sockState)
      return ERR_IO;
     }
     //cout << "RECEIVED:" << sRecvBuf << endl;
-    debug("Received...");
-    debug(sRecvBuf);
+    debug("S: " + sRecvBuf);
   }
   else if(sockState==WRITE_READY)
   {
@@ -245,7 +244,7 @@ int SendMail::run(int sockState)
         {
           string sBuf = "EHLO localhost";
           sBuf.append("\r\n");
-          debug("cmd: EHLO localhost");
+          debug("C: EHLO localhost");
           send(iSock, sBuf.c_str(), sBuf.length(), 0);
         }
       break;          
@@ -301,7 +300,7 @@ int SendMail::run(int sockState)
                         sBuf.append(sAuth64);
                         sBuf.append("\r\n");
                        
-                        debug("cmd: " + sBuf);
+                        debug("C: " + sBuf);
 
                         send(iSock, sBuf.c_str(), sBuf.length(), 0);
                 
@@ -351,7 +350,7 @@ int SendMail::run(int sockState)
                             bAuthDone = true;
                             break;
                     }
-                    debug("cmd: " + sBuf);
+                    debug("C: " + sBuf);
                     send(iSock, sBuf.c_str(), sBuf.length(), 0);
                 }
             }
@@ -365,7 +364,7 @@ int SendMail::run(int sockState)
         {
           string sBuf = "MAIL FROM:";
           sBuf.append(sFrom);
-          debug("cmd: " + sBuf);
+          debug("C: " + sBuf);
           sBuf.append("\r\n");
           send(iSock, sBuf.c_str(), sBuf.length(), 0);
         }
@@ -374,14 +373,14 @@ int SendMail::run(int sockState)
         {
           string sBuf = "RCPT TO:";
           sBuf.append(sTo);
-          debug("cmd: " + sBuf);
+          debug("C: " + sBuf);
           sBuf.append("\r\n");
           send(iSock,sBuf.c_str(), sBuf.length(), 0);
         }
       break;          
     case DATA:
         {
-          debug("cmd: DATA");
+          debug("C: DATA");
           string sBuf = "DATA";
           string sLine;
           char cBuffer[1024];
@@ -615,16 +614,15 @@ int SendMail::run(int sockState)
         }
       break;
     case MAIL:
-        debug("data sending in progress...");
+        debug("Data sending in progress...");
         if(sSendBuf.length()>0)
         {
           iSentBytes = send(iSock, sSendBuf.c_str(), sSendBuf.length(), 0);
-          debug("sent: " + sSendBuf.substr(0, iSentBytes));
+          debug("C: " + sSendBuf.substr(0, iSentBytes));
         }
         else iSentBytes = 1;
         break;
     case FINISHED:
-        debug("Mail sending session ends.");
          //cout << "This session has exhausted!" << endl;
       break;
   }
