@@ -97,6 +97,7 @@ void Thread::initMailObj()
                       configObj->getSubject(),
                       configObj->getBody(),
                       configObj->getAttachment());
+ mailObj.setAuthInfo(configObj->sUsername, configObj->sPassword, configObj->sAuthType);
 }
 
 int Thread::okay()

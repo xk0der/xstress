@@ -10,12 +10,13 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <cstring>
 
 #include "common.h"
 #include "sendmail.h"
@@ -35,7 +36,11 @@ const char * ConfigVarsStr[]=
   "TIMEOUT",
   "REPORT_AFTER",
   "LOG_TIMEOUT",
-  "MAX_RECIPIENTS"
+  "MAX_RECIPIENTS",
+  "USERNAME",
+  "PASSWORD",
+  "AUTH_TYPE",
+  "DEBUG",
   " "
 };
 
@@ -123,6 +128,9 @@ Config::Config(string sConfigFile)
   uiReportAfter = 0;
   uiLogTimeout = 1;
   uiMaxRecipients = 1;
+  sPassword = "";
+  sUsername = "";
+  sAuthType = "";
 
   if(!filp.fail())
   {
@@ -165,9 +173,49 @@ Config::Config(string sConfigFile)
               break;
             }
           }
-
+          
           switch(configVar)
           {
+            case C_DEBUG:
+              {
+                char cBuf[255];
+                if(RValue.length() < 200)
+                {
+                    strcpy(cBuf, RValue.c_str());
+                    int ii = 0;
+                    while(cBuf[ii])
+                    {
+                        cBuf[ii] = toupper(cBuf[ii]);
+                        ii++;
+                    }
+                    RValue = cBuf;
+                }
+                if(RValue == "TRUE") bDebug = true;
+              }
+              break;
+            case C_AUTH_TYPE:
+              {
+                char cBuf[255];
+                if(RValue.length() < 200)
+                {
+                    strcpy(cBuf, RValue.c_str());
+                    int ii = 0;
+                    while(cBuf[ii])
+                    {
+                        cBuf[ii] = toupper(cBuf[ii]);
+                        ii++;
+                    }
+                    RValue = cBuf;
+                }
+                sAuthType = RValue;
+              }
+              break;
+            case C_USERNAME:
+              sUsername = RValue;
+              break;
+            case C_PASSWORD:
+              sPassword = RValue;
+              break;
             case C_SERVER:
               sServerIP = RValue;
               break;

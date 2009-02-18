@@ -33,11 +33,15 @@ SendMail::SendMail()
   uiLastState = IDLE;
   uiStateCounter = 0;
   iState = IDLE;
+  iAuthState = 0;
+  bAuthDone = false;
   iSock = -1;
   sFrom = sTo = "";
   sSubject = "Test Mail!";
   sAttachment = "";
   iConnected = false;
+  sPassword = "";
+  sUsername = "";
 }
 
 SendMail::SendMail
@@ -47,6 +51,8 @@ SendMail::SendMail
   uiStateCounter = 0;
   iConnected = false;
   iState = IDLE;
+  iAuthState = 0;
+  bAuthDone = false;
   iSock = -1;
   setTo(_sTo);
   setFrom(_sFrom);
@@ -109,6 +115,8 @@ int SendMail::changeState(int sockState)
      return ERR_IO;
     }
     //cout << "RECEIVED:" << sRecvBuf << endl;
+    debug("Received...");
+    debug(sRecvBuf);
   }
   else if(sockState==WRITE_READY)
   {
@@ -126,7 +134,18 @@ int SendMail::changeState(int sockState)
         break;
       case EHLO:
         //cout << "EHLO->MAILFROM" << endl;
-        iState = MAILFROM;
+        iState = AUTH;
+        iAuthState = 0;
+        break;
+      case AUTH:
+        if(bAuthDone)
+        {
+            iState = MAILFROM;
+        }
+        else
+        {
+            iAuthState++;
+        }
         break;
       case MAILFROM:
         //cout << "MAILFROM-->RCPTTO" << endl;
@@ -195,6 +214,7 @@ int SendMail::run(int sockState)
         addr.sin_family = AF_INET;
         addr.sin_port = htons(uiServerPort);
         inet_aton(sServerIP.c_str(), &addr.sin_addr);
+        debug("Trying to connect to " + sServerIP);
         //cout << "Server : " << sServerIP <<  ":" << uiServerPort << endl;
         if(iSock!=-1)
         {
@@ -203,11 +223,13 @@ int SendMail::run(int sockState)
                                  ( (errno == EINPROGRESS)|| (errno == EALREADY)))
           {
             iConnected = true;
+            debug("Connected to the server!");
           }
           else
           {
             return ERR_CONNECT;
             //cout << "ERR" << endl;
+            debug("Error connecting!");
           }
           /*
           if (connect(iSock, (const sockaddr*) &addr, sizeof(sockaddr)) == -1)
@@ -223,13 +245,127 @@ int SendMail::run(int sockState)
         {
           string sBuf = "EHLO localhost";
           sBuf.append("\r\n");
+          debug("cmd: EHLO localhost");
           send(iSock, sBuf.c_str(), sBuf.length(), 0);
         }
       break;          
+    case AUTH:
+        {
+            if(!sAuthType.empty())
+            {
+                bAuthDone = false;
+                if(sAuthType == "PLAIN")
+                {
+                    string sAuth64;
+                    char cBuf[255];
+                    string sBuf = "AUTH";
+                    //switch(uiAuthType)
+                    sBuf.append(" PLAIN ");
+                    
+                    string sFilenameTMP;
+                    string sFilename;
+                    sprintf(cBuf, ".auth.b64.%i.tmp", logger.getThreadId());
+                    sFilenameTMP = cBuf;
+                    sprintf(cBuf, ".auth.b64.%i", logger.getThreadId());
+                    sFilename = cBuf;
+
+                    cBuf[0] = 0x00;
+                    ofstream ofilp;
+                    ofilp.open(sFilenameTMP.c_str(), ofstream::out | ofstream::binary);
+                    if(!ofilp.fail())
+                    {
+                        ofilp.write(sUsername.c_str(), sUsername.length());
+                        ofilp.write(cBuf, 1);
+                        ofilp.write(sUsername.c_str(), sUsername.length());
+                        ofilp.write(cBuf, 1);
+                        ofilp.write(sPassword.c_str(), sPassword.length());
+                        ofilp.close();
+                    }
+
+                    sprintf(cBuf, "./base64 -e %s > %s", sFilenameTMP.c_str(), sFilename.c_str());
+                    system(cBuf);
+
+                    ifstream filp;
+                    filp.open(sFilename.c_str(), ifstream::in);
+                    
+                    char cBuffer[1024];
+                    if(!filp.fail())
+                    {
+                        if(!filp.eof())
+                        {
+                            filp.getline(cBuffer, 1000);
+                            cBuffer[1023]=0x00; 
+                            sAuth64 = cBuffer;
+                        }
+                        
+                        sBuf.append(sAuth64);
+                        sBuf.append("\r\n");
+                       
+                        debug("cmd: " + sBuf);
+
+                        send(iSock, sBuf.c_str(), sBuf.length(), 0);
+                
+                    }
+                    
+                    system("rm -f .auth.*");
+                    bAuthDone = true;
+                }
+                else if(sAuthType == "LOGIN")
+                {
+                    string sBuf;
+                    char cBuf[1024];
+                    string sFilename;
+                    sprintf(cBuf, ".auth.b64.%i", logger.getThreadId());
+                    sFilename = cBuf;
+                    ifstream filp;
+                    switch(iAuthState)
+                    {
+                        case 0: // AUTH LOGIN
+                            sBuf = "AUTH LOGIN\r\n";
+                            break;
+                        case 1: // Username
+                            sprintf(cBuf,"echo '%s' | ./base64 -e > %s", sUsername.c_str(), sFilename.c_str());
+                            system(cBuf);
+                            filp.open(sFilename.c_str(), ifstream::in);
+                            if(!filp.fail())
+                            {
+                                filp.getline(cBuf, 1000);
+                                cBuf[1023] = 0x00;
+                                sBuf = cBuf;
+                                sBuf.append("\r\n");
+                            }
+                            //system("rm -f .auth.*");
+                            break;
+                        case 2: // Password
+                            sprintf(cBuf,"echo '%s' | ./base64 -e > %s", sPassword.c_str(), sFilename.c_str());
+                            system(cBuf);
+                            filp.open(sFilename.c_str(), ifstream::in);
+                            if(!filp.fail())
+                            {
+                                filp.getline(cBuf, 1000);
+                                cBuf[1023] = 0x00;
+                                sBuf = cBuf;
+                                sBuf.append("\r\n");
+                            }
+                            //system("rm -f .auth.*");
+                            bAuthDone = true;
+                            break;
+                    }
+                    debug("cmd: " + sBuf);
+                    send(iSock, sBuf.c_str(), sBuf.length(), 0);
+                }
+            }
+            else
+            {
+                bAuthDone = true;
+            }
+        }
+        break;
     case MAILFROM:
         {
           string sBuf = "MAIL FROM:";
           sBuf.append(sFrom);
+          debug("cmd: " + sBuf);
           sBuf.append("\r\n");
           send(iSock, sBuf.c_str(), sBuf.length(), 0);
         }
@@ -238,12 +374,14 @@ int SendMail::run(int sockState)
         {
           string sBuf = "RCPT TO:";
           sBuf.append(sTo);
+          debug("cmd: " + sBuf);
           sBuf.append("\r\n");
           send(iSock,sBuf.c_str(), sBuf.length(), 0);
         }
       break;          
     case DATA:
         {
+          debug("cmd: DATA");
           string sBuf = "DATA";
           string sLine;
           char cBuffer[1024];
@@ -477,13 +615,16 @@ int SendMail::run(int sockState)
         }
       break;
     case MAIL:
+        debug("data sending in progress...");
         if(sSendBuf.length()>0)
         {
           iSentBytes = send(iSock, sSendBuf.c_str(), sSendBuf.length(), 0);
+          debug("sent: " + sSendBuf.substr(0, iSentBytes));
         }
         else iSentBytes = 1;
         break;
     case FINISHED:
+        debug("Mail sending session ends.");
          //cout << "This session has exhausted!" << endl;
       break;
   }
@@ -535,4 +676,23 @@ int SendMail::setServer(string _ip, unsigned int _port)
   sServerIP = _ip;
   uiServerPort = _port;
   return NO_ERR;
+}
+
+void SendMail::setAuthInfo(string _username, string _password, string _authType)
+{
+    sUsername = _username;
+    sPassword = _password;
+    sAuthType = _authType;
+    if(sUsername.empty() || sPassword.empty())
+    {
+        sAuthType = "";
+    }
+    else
+   {
+        // We defaul to AUTH PLAIN if none is provided.
+        if(sAuthType.empty())
+        {
+            sAuthType = "PLAIN";
+        }
+    }
 }

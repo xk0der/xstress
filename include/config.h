@@ -30,6 +30,9 @@ class Config
   unsigned int uiReportAfter;
   unsigned int uiLogTimeout;
   unsigned int uiMaxRecipients;
+  string sUsername;
+  string sPassword;
+  string sAuthType;
 
   private:
   vector <string> toList; 

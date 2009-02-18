@@ -30,7 +30,7 @@
 
 using namespace std;
 
-
+int bDebug = false;
 
 Logger logger;
 
@@ -106,6 +106,8 @@ int main(int argc, const char *argv[])
   {
     uiObj.setConfig(configObj);
   }
+
+  debug("Debugging ON.");
   
   logger.setLogFile(configObj.sLogFile);
 
@@ -185,3 +187,10 @@ int main(int argc, const char *argv[])
   return 0;
 }
 
+void debug(string _msg)
+{
+    if(bDebug)
+    {
+        cout << "* " << _msg << endl;
+    }
+}

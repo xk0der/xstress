@@ -30,6 +30,10 @@ class UserInterface
    int uiMailsPerThread;
    int uiTimeout;
 
+   string sUsername;
+   string sPassword;
+   string sAuthType;
+
    UserInterface();
    int processOptions(int argc, const char *argv[]);
    unsigned int override();

@@ -30,6 +30,8 @@ class SendMail
   unsigned int uiServerPort;
   string sServerIP;
   int iState;
+  int iAuthState;
+  int bAuthDone;
   int iConnected;
 
   string sTo;
@@ -38,6 +40,10 @@ class SendMail
   string sBody; /*File Name*/
   string sAttachment; /*File name*/
   string sAttachType;
+
+  string sUsername;
+  string sPassword;
+  string sAuthType;
 
   string sRecvBuf;
   string sSendBuf;
@@ -60,6 +66,8 @@ class SendMail
   int setServer(string _ip, unsigned int _port);
   void reset();
   void disconnect();
+
+  void setAuthInfo(string _username, string _password, string _authType);
 
   int state();
 };

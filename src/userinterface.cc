@@ -8,7 +8,8 @@
  * Please visit the following webpage for more details
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "common.h"
 #include "userinterface.h"
@@ -36,6 +37,14 @@ const char *cmdOptStr[]=
   "--conf",
   "--logfile",
   "--license",
+  "-u",
+  "--username",
+  "-P",
+  "--password",
+  "-a",
+  "--auth-type",
+  "-d",
+  "--debug",
   " "
 };
 
@@ -49,6 +58,11 @@ void UserInterface::setConfig(Config &configObj)
   if(uiMailsPerThread>=0) configObj.uiMailsPerThread = uiMailsPerThread;
   if(uiTimeout>0) configObj.uiTimeout = uiTimeout;
   if(uiServerPort>0) configObj.uiServerPort = uiServerPort;
+  
+  if(!sUsername.empty()) configObj.sUsername = sUsername;
+  if(!sPassword.empty()) configObj.sPassword = sPassword;
+  
+  if(!sAuthType.empty()) configObj.sAuthType = sAuthType;
 
 }
 
@@ -65,6 +79,9 @@ UserInterface::UserInterface()
   uiTimeout = -1;
   sServerIP = "";
   sLogFile = "";
+  sUsername = "";
+  sPassword = "";
+  sAuthType = "";
 
   sConfigFile = DEFAULT_CONFIG_FILE;  
   uiOverride = false;
@@ -73,7 +90,7 @@ UserInterface::UserInterface()
 int UserInterface::processOptions(int argc, const char *argv[])
 {
   string sOpt, sVal;
-  int iRetVal = true,ii,jj;
+  int iRetVal = true, ii, jj;
   int iOpt;
   if(argc<2) return iRetVal;
 
@@ -81,7 +98,7 @@ int UserInterface::processOptions(int argc, const char *argv[])
   {
     sOpt = argv[ii];
     iOpt = CO_NONE;
-    for(jj=1;jj<CO_MAX;jj++)
+    for(jj = 1; jj < CO_MAX; jj++)
     {
       if(sOpt == cmdOptStr[jj])
       {
@@ -92,6 +109,65 @@ int UserInterface::processOptions(int argc, const char *argv[])
     
     switch(iOpt)
     {
+      case CO_D:
+      case CO_DEBUG:
+            bDebug = true;
+        break;
+
+      case CO_A:
+      case CO_AUTH_TYPE:
+            if(ii<(argc-1))
+            {
+              ii++;
+              sAuthType = argv[ii];
+              char cBuf[255];
+              if(sAuthType.length() < 200)
+              {
+                  strcpy(cBuf, sAuthType.c_str());
+                  int jj = 0;
+                  while(cBuf[jj])
+                  {
+                      cBuf[jj] = toupper(cBuf[jj]);
+                      jj++;
+                  }
+                  sAuthType = cBuf;
+              }
+              uiOverride = true;
+            }
+            else
+            {
+              cout << "Option " << argv[ii] << " requires a value" << endl;
+              iRetVal = false;
+            }
+            break;
+      case CO_BIG_P:
+      case CO_PASSWORD:
+            if(ii<(argc-1))
+            {
+              ii++;
+              sPassword = argv[ii];
+              uiOverride = true;
+            }
+            else
+            {
+              cout << "Option " << argv[ii] << " requires a value" << endl;
+              iRetVal = false;
+            }
+            break;
+      case CO_U:
+      case CO_USERNAME:
+            if(ii<(argc-1))
+            {
+              ii++;
+              sUsername = argv[ii];
+              uiOverride = true;
+            }
+            else
+            {
+              cout << "Option " << argv[ii] << " requires a value" << endl;
+              iRetVal = false;
+            }
+            break;
       case CO_V:
       case CO_VER:
       case CO_VERSION:
