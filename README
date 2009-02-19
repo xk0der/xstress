@@ -1,4 +1,4 @@
-xstress version 0.37 beta - xk0derz SMTP Stress Tester
+xstress version 0.38 beta - xk0derz SMTP Stress Tester
 
 http://xstress.sourceforge.net
 
@@ -226,6 +226,8 @@ PASSWORD - Password for your username.
 
 AUTH_TYPE - Authentication mechanism to use. 
             Currently only PLAIN is supported.
+
+* To skip authentication comment out USERNAME or PASSWORD variable.
 
 DEBUG - set to true if you want debug messages with complete traffic printed
         on scree. Default value is false.

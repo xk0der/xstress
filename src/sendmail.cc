@@ -42,6 +42,7 @@ SendMail::SendMail()
   iConnected = false;
   sPassword = "";
   sUsername = "";
+  bAuthenticated = false;
 }
 
 SendMail::SendMail
@@ -133,12 +134,27 @@ int SendMail::changeState(int sockState)
         break;
       case EHLO:
         //cout << "EHLO->MAILFROM" << endl;
-        iState = AUTH;
-        iAuthState = 0;
+        //cout << "sAuthType = " << sAuthType << endl;
+        if(sAuthType == "NONE")
+        {
+            bAuthenticated = true;
+            //cout << "seeting bAuthenticated to true" << endl;
+        }
+
+        if(bAuthenticated)
+        {
+            iState = MAILFROM;
+        }
+        else
+        {
+            iState = AUTH;
+            iAuthState = 0;
+        }
         break;
       case AUTH:
         if(bAuthDone)
         {
+            bAuthenticated = true;
             iState = MAILFROM;
         }
         else
@@ -250,7 +266,7 @@ int SendMail::run(int sockState)
       break;          
     case AUTH:
         {
-            if(!sAuthType.empty())
+            if(sAuthType != "NONE")
             {
                 bAuthDone = false;
                 if(sAuthType == "PLAIN")
@@ -314,17 +330,34 @@ int SendMail::run(int sockState)
                     string sBuf;
                     char cBuf[1024];
                     string sFilename;
+                    string sFilenameTMP;
+                    
                     sprintf(cBuf, ".auth.b64.%i", logger.getThreadId());
                     sFilename = cBuf;
+                    
+                    sprintf(cBuf, ".auth.b64.%i.tmp", logger.getThreadId());
+                    sFilenameTMP = cBuf;
+                    
                     ifstream filp;
+                    ofstream ofilp;
+                    
                     switch(iAuthState)
                     {
                         case 0: // AUTH LOGIN
                             sBuf = "AUTH LOGIN\r\n";
                             break;
                         case 1: // Username
-                            sprintf(cBuf,"echo '%s' | ./base64 -e > %s", sUsername.c_str(), sFilename.c_str());
+                            ofilp.open(sFilenameTMP.c_str(), ofstream::out | ofstream::binary);
+                            
+                            if(!ofilp.fail())
+                            {
+                                ofilp.write(sUsername.c_str(), sUsername.length());
+                            } 
+                            ofilp.close();
+
+                            sprintf(cBuf,"./base64 -e %s > %s", sFilenameTMP.c_str(), sFilename.c_str());
                             system(cBuf);
+                            
                             filp.open(sFilename.c_str(), ifstream::in);
                             if(!filp.fail())
                             {
@@ -333,11 +366,22 @@ int SendMail::run(int sockState)
                                 sBuf = cBuf;
                                 sBuf.append("\r\n");
                             }
+                            filp.close();
+
                             //system("rm -f .auth.*");
                             break;
                         case 2: // Password
-                            sprintf(cBuf,"echo '%s' | ./base64 -e > %s", sPassword.c_str(), sFilename.c_str());
+                            ofilp.open(sFilenameTMP.c_str(), ofstream::out | ofstream::binary);
+                            
+                            if(!ofilp.fail())
+                            {
+                                ofilp.write(sPassword.c_str(), sPassword.length());
+                            } 
+                            ofilp.close();
+
+                            sprintf(cBuf,"./base64 -e %s > %s", sFilenameTMP.c_str(), sFilename.c_str());
                             system(cBuf);
+
                             filp.open(sFilename.c_str(), ifstream::in);
                             if(!filp.fail())
                             {
@@ -346,6 +390,7 @@ int SendMail::run(int sockState)
                                 sBuf = cBuf;
                                 sBuf.append("\r\n");
                             }
+                            filp.close();
                             //system("rm -f .auth.*");
                             bAuthDone = true;
                             break;
@@ -482,130 +527,135 @@ int SendMail::run(int sockState)
         
 
 
-          // Attachment goes here!!
-          for(ii=1;ii<MT_MAX;ii++)
-          {
-            if(sAttachType==MIMETypeStr[ii])
-            {
-              iMType = ii;
-              break;
-            }
+         if(!sAttachment.empty()) // If we have an attachment
+         {
+             // Attachment goes here!!
+             for(ii=1;ii<MT_MAX;ii++)
+             {
+                 if(sAttachType==MIMETypeStr[ii])
+                 {
+                     iMType = ii;
+                     break;
+                 }
+             }
+
+             if(sAttachment.find("/")!=string::npos)
+             {
+                 sLine = sAttachment.substr(sAttachment.rfind("/"),sAttachment.length());
+             }
+             else
+             {
+                 sLine = sAttachment;
+             }
+
+             sSendBuf.append("\r\n--");
+             sSendBuf.append(BOUNDARY);
+             sSendBuf.append("\r\n");
+
+             switch(iMType)
+             {
+                 case MT_BIN:
+                     sSendBuf.append("Content-Type: application/octet-stream; name=");
+                     sSendBuf.append("\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n");
+
+                     sSendBuf.append("Content-Transfer-Encoding: base64\r\n");
+                     sSendBuf.append("Content-Disposition: attachment; filename=\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n\r\n");
+
+                     {
+                         char cBuf[255];
+                         sprintf(cBuf,"./base64 -e %s > .xstress.b64.%i.tmp",sAttachment.c_str(), 
+                                 logger.getThreadId());
+                         system(cBuf);
+
+                         sprintf(cBuf,".xstress.b64.%i.tmp", logger.getThreadId());
+                         sAttachment = cBuf;
+                     }
+
+                     break; 
+                 case MT_PLAIN:
+                     sSendBuf.append("Content-Type: text/plain; charset=UTF-8; name=");
+                     sSendBuf.append("\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n");
+                     sSendBuf.append("Content-Transfer-Encoding: 7bit\r\n");
+                     sSendBuf.append("Content-Disposition: attachment; filename=\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n\r\n");
+                     break;
+                 case MT_HTML:
+                     sSendBuf.append("Content-Type: text/html; charset=UTF-8; name=");
+                     sSendBuf.append("\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n");
+                     sSendBuf.append("Content-Transfer-Encoding: 7bit\r\n");
+                     sSendBuf.append("Content-Disposition: attachment; filename=\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n\r\n");
+                     break;
+                 case MT_IMAGE:
+                     sSendBuf.append("Content-Type: application/octet-stream; name=");
+                     sSendBuf.append("\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n");
+                     sSendBuf.append("Content-Transfer-Encoding: base64\r\n");
+                     sSendBuf.append("Content-Disposition: inline; filename=\"");
+                     sSendBuf.append(sLine);
+                     sSendBuf.append("\"\r\n\r\n");
+                     {
+                         char cBuf[255];
+                         sprintf(cBuf,"./base64 -e %s > .xstress.b64.%i.tmp",sAttachment.c_str(), 
+                                 logger.getThreadId());
+                         system(cBuf);
+
+                         sprintf(cBuf,".xstress.b64.%i.tmp", logger.getThreadId());
+                         sAttachment = cBuf;
+                     }
+                     break;
+             }
+
+             filp.clear();
+             if(filp.is_open()) filp.close();
+             filp.open(sAttachment.c_str(), ios::in | ios::binary);
+             if(!filp.fail())
+             {
+                 unsigned long int ulTS = time(NULL);
+                 while(!filp.eof())
+                 {
+                     memset(cBuffer,0,80);
+                     filp.read(cBuffer, 77);
+
+                     cBuffer[77]=0x00;
+                     sSendBuf.append(cBuffer);
+
+                     if(time(NULL)-ulTS>10)
+                     { 
+                         logger.log("Timeout while reading attachment file!");
+                         sSendBuf.append("Timeout while reading attachment file"); break; }
+                 }
+
+                 filp.close();
+             }
+             else
+             {
+                 sSendBuf.append("\r\nUnable to open attachment file '");
+                 sSendBuf.append(sAttachment);
+                 sSendBuf.append("'\r\n");
+             }
+             sSendBuf.append("\r\n");
+
+             {
+                 char cBuf[255];
+                 sprintf(cBuf,"rm -f .xstress.b64.%i.tmp",logger.getThreadId());
+                 system(cBuf);
+             }
+
+
           }
-
-          if(sAttachment.find("/")!=string::npos)
-          {
-            sLine = sAttachment.substr(sAttachment.rfind("/"),sAttachment.length());
-          }
-          else
-          {
-            sLine = sAttachment;
-          }
-          
-          sSendBuf.append("\r\n--");
-          sSendBuf.append(BOUNDARY);
-          sSendBuf.append("\r\n");
-          
-          switch(iMType)
-          {
-            case MT_BIN:
-              sSendBuf.append("Content-Type: application/octet-stream; name=");
-              sSendBuf.append("\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n");
-
-              sSendBuf.append("Content-Transfer-Encoding: base64\r\n");
-              sSendBuf.append("Content-Disposition: attachment; filename=\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n\r\n");
-
-              {
-                char cBuf[255];
-                sprintf(cBuf,"./base64 -e %s > .xstress.b64.%i.tmp",sAttachment.c_str(), 
-                                                               logger.getThreadId());
-                system(cBuf);
-                
-                sprintf(cBuf,".xstress.b64.%i.tmp", logger.getThreadId());
-                sAttachment = cBuf;
-              }
-
-              break; 
-            case MT_PLAIN:
-              sSendBuf.append("Content-Type: text/plain; charset=UTF-8; name=");
-              sSendBuf.append("\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n");
-              sSendBuf.append("Content-Transfer-Encoding: 7bit\r\n");
-              sSendBuf.append("Content-Disposition: attachment; filename=\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n\r\n");
-              break;
-            case MT_HTML:
-              sSendBuf.append("Content-Type: text/html; charset=UTF-8; name=");
-              sSendBuf.append("\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n");
-              sSendBuf.append("Content-Transfer-Encoding: 7bit\r\n");
-              sSendBuf.append("Content-Disposition: attachment; filename=\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n\r\n");
-              break;
-            case MT_IMAGE:
-              sSendBuf.append("Content-Type: application/octet-stream; name=");
-              sSendBuf.append("\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n");
-              sSendBuf.append("Content-Transfer-Encoding: base64\r\n");
-              sSendBuf.append("Content-Disposition: inline; filename=\"");
-              sSendBuf.append(sLine);
-              sSendBuf.append("\"\r\n\r\n");
-              {
-                char cBuf[255];
-                sprintf(cBuf,"./base64 -e %s > .xstress.b64.%i.tmp",sAttachment.c_str(), 
-                                                               logger.getThreadId());
-                system(cBuf);
-                
-                sprintf(cBuf,".xstress.b64.%i.tmp", logger.getThreadId());
-                sAttachment = cBuf;
-              }
-              break;
-          }
-
-          filp.clear();
-          if(filp.is_open()) filp.close();
-          filp.open(sAttachment.c_str(), ios::in | ios::binary);
-          if(!filp.fail())
-          {
-            unsigned long int ulTS = time(NULL);
-            while(!filp.eof())
-            {
-              memset(cBuffer,0,80);
-              filp.read(cBuffer, 77);
-
-              cBuffer[77]=0x00;
-              sSendBuf.append(cBuffer);
-
-              if(time(NULL)-ulTS>10)
-              { 
-                logger.log("Timeout while reading attachment file!");
-                sSendBuf.append("Timeout while reading attachment file"); break; }
-            }
-
-            filp.close();
-          }
-          else
-          {
-            sSendBuf.append("\r\nUnable to open attachment file '");
-            sSendBuf.append(sAttachment);
-            sSendBuf.append("'\r\n");
-          }
-          sSendBuf.append("\r\n");
-              
-          {
-            char cBuf[255];
-            sprintf(cBuf,"rm -f .xstress.b64.%i.tmp",logger.getThreadId());
-            system(cBuf);
-          }
-
+         
           sSendBuf.append("\r\n--");
           sSendBuf.append(BOUNDARY);
           sSendBuf.append("--\r\n");
@@ -681,11 +731,17 @@ void SendMail::setAuthInfo(string _username, string _password, string _authType)
     sUsername = _username;
     sPassword = _password;
     sAuthType = _authType;
+   
+    //cout << "setAuthInfo : Username '" << sUsername << "'" << endl;
+    //cout << "setAuthInfo : Password '" << sPassword << "'" << endl;
+    //cout << "setAuthInfo : AuthType '" << sAuthType << "'" << endl;
+
     if(sUsername.empty() || sPassword.empty())
     {
-        sAuthType = "";
+        sAuthType = "NONE";
+        bAuthenticated = true;
     }
-    else
+    else if(!sUsername.empty() && !sPassword.empty())
    {
         // We defaul to AUTH PLAIN if none is provided.
         if(sAuthType.empty())
@@ -693,4 +749,9 @@ void SendMail::setAuthInfo(string _username, string _password, string _authType)
             sAuthType = "PLAIN";
         }
     }
+}
+
+void SendMail::resetAuth()
+{
+    bAuthenticated = false;
 }

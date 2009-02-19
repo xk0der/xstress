@@ -28,6 +28,7 @@ Thread::Thread(void)
   iSockFd = -1;
   uiEventToPoll = POLLOUT;
   logger.setThreadId(id);
+
 }
 
 Thread::Thread(int _id, int _mailsToSend, Config *_configObj)
@@ -59,10 +60,10 @@ void Thread::initThread(int _id, int _mailsToSend, Config *_configObj)
   configObj = _configObj;
   iSockFd = -1;
 
+  
   createSocket();
-  mailObj.setServer(configObj->sServerIP, configObj->uiServerPort);
-  mailObj.iSock = iSockFd;
-  initMailObj();
+  //initMailObj();
+  //mailObj.iSock = iSockFd;
 }
 
 void Thread::createSocket()
@@ -74,6 +75,9 @@ void Thread::createSocket()
   if(iSockFd<0){ iOkay = false;  return; }
   
   fcntl(iSockFd, F_SETFL, O_NONBLOCK);
+    
+  mailObj.resetAuth();
+  initMailObj();
 }
 
 void Thread::closeSocket()
@@ -92,12 +96,13 @@ void Thread::initMailObj()
   iOkay = true;
   mailObj.iSock = iSockFd;
   mailObj.reset();
+  mailObj.setServer(configObj->sServerIP, configObj->uiServerPort);
+  mailObj.setAuthInfo(configObj->sUsername, configObj->sPassword, configObj->sAuthType);
   mailObj.setMailInfo(configObj->getTo(),
                       configObj->getFrom(),
                       configObj->getSubject(),
                       configObj->getBody(),
                       configObj->getAttachment());
- mailObj.setAuthInfo(configObj->sUsername, configObj->sPassword, configObj->sAuthType);
 }
 
 int Thread::okay()
@@ -125,9 +130,10 @@ void Thread::process()
     logger.log("Received POLLHUP or POLLNVAL, restarting thread.");
     
     uiEventToPoll = POLLOUT;
+    
     closeSocket();
     createSocket();
-    initMailObj();
+    //initMailObj();
 
     return;
   }
@@ -149,6 +155,7 @@ void Thread::process()
         logger.log(cBuf);
         uiMailsSend=0;
       }
+      // Get another TO/FROM/BODY/ATTACH
       initMailObj();
       uiEventToPoll = POLLOUT;
       return;
@@ -162,7 +169,7 @@ void Thread::process()
         logger.log("Mail server didn't understand command OR invalid TO/FROM address.");
         closeSocket();
         createSocket();
-        initMailObj();
+        //initMailObj();
       }
 
       //return;
@@ -228,7 +235,9 @@ void Thread::process()
       uiTimeoutCounter = configObj->uiTimeout;
       closeSocket();
       createSocket();
-      initMailObj();
+      
+      //initMailObj();
+
       uiEventToPoll = POLLOUT; 
     }
   }

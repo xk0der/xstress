@@ -38,8 +38,8 @@ const string DEFAULT_CONFIG_FILE="xstress.conf";
 const string DEFAULT_LOG_FILE="xstress.log";
 const int DEFAULT_CACHE_THRESHOLD = 1024*4;
 
-const string VERSION="xstress version 0.37b - xk0derz SMTP Stress Tester";
-const string COPYRIGHT="(c) 2007-08 Amit Singh (aka xk0der), amit@xkoder.com, http://xkoder.com\n"
+const string VERSION="xstress version 0.375b - xk0derz SMTP Stress Tester";
+const string COPYRIGHT="(c) 2007-09 Amit Singh (aka xk0der), amit@xkoder.com, http://xkoder.com\n"
            "This software and related files are licensed under GNU GPL version 2\n"
            "Please visit the following webpage for more details\n"
            "http://www.gnu.org/licenses/old-licenses/gpl-2.0.html\n"

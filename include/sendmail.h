@@ -32,6 +32,7 @@ class SendMail
   int iState;
   int iAuthState;
   int bAuthDone;
+  int bAuthenticated;
   int iConnected;
 
   string sTo;
@@ -48,6 +49,7 @@ class SendMail
   string sRecvBuf;
   string sSendBuf;
   int iSentBytes;
+  
 
   public:
   SendMail();
@@ -70,6 +72,7 @@ class SendMail
   void setAuthInfo(string _username, string _password, string _authType);
 
   int state();
+  void resetAuth();
 };
 
 #endif
