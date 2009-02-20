@@ -182,11 +182,11 @@ enum eState
 
 enum eAuthType
 {
-    SIMPLE,
-    PLAIN,
-    LOGIN,
-    CRAM_MD5,
-    NONE
+    AUTH_NONE,
+    AUTH_PLAIN, // Supported
+    AUTH_LOGIN, 
+    AUTH_CRAM_MD5,
+    AUTH_NULL
 };
 
 enum eSockState

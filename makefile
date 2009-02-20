@@ -13,10 +13,10 @@
 # and help of editing the configuration file
 #
 
-OBJ_DIR=./obj
-SRC_DIR=./src
-INCLUDE_DIR=./include
-BIN_DIR=./bin
+OBJ_DIR=obj
+SRC_DIR=src
+INCLUDE_DIR=include
+BIN_DIR=bin
 
 OBJS=$(OBJ_DIR)/xstress.o $(OBJ_DIR)/sendmail.o \
      $(OBJ_DIR)/config.o \
@@ -39,16 +39,21 @@ LD=ld
 .PHONY: all
 .PHONY: clean
 
-all: $(OBJS) $(B64_OUT)
-	$(GPP) -o $(PROG) $(OBJS)
+all: $(B64_OUT) $(PROG)
 	cp -i xstress.conf $(BIN_DIR)
 
-$(OBJS):
+$(OBJS): $(SRC)
 	$(GPP) -c $(SRC) -I $(INCLUDE_DIR)
 	mv *.o $(OBJ_DIR)
 
-$(B64_OUT):
+.o.c:
+	$(GPP) -c
+
+$(B64_OUT): $(BASE_SRC)
 	$(GCC) $(B64_SRC) -o $(B64_OUT)
+
+$(PROG): $(OBJS)
+	$(GPP) -o $(PROG) $(OBJS)
 
 clean:
 	rm -f *.o

@@ -49,6 +49,7 @@ class SendMail
   string sRecvBuf;
   string sSendBuf;
   int iSentBytes;
+  unsigned int uiAuthType;
   
 
   public:

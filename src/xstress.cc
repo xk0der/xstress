@@ -191,6 +191,6 @@ void debug(string _msg)
 {
     if(bDebug)
     {
-        cout << "* " << _msg << endl;
+        cout << "Thread [" << logger.getThreadId() << "] * " << _msg << endl;
     }
 }
