@@ -24,6 +24,7 @@
 
 #include <string>
 #include <iostream>
+#include <cstdio>
 
 /*Common*/
 using namespace std;
@@ -135,7 +136,7 @@ enum eSections
   S_MAX
 };
 
-extern const char *SectionsStr[];
+extern const char * const SectionsStr[];
 
 enum eConfigVars 
 {
@@ -156,7 +157,7 @@ enum eConfigVars
   C_MAX
 };
 
-extern const char * ConfigVarsStr[];
+extern const char * const ConfigVarsStr[];
 
 enum eError
 {

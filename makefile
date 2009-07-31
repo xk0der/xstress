@@ -43,7 +43,7 @@ all: $(B64_OUT) $(PROG)
 	cp -i xstress.conf $(BIN_DIR)
 
 $(OBJS): $(SRC)
-	$(GPP) -c $(SRC) -I $(INCLUDE_DIR)
+	$(GPP) -O3 -c $(SRC) -I $(INCLUDE_DIR)
 	mv *.o $(OBJ_DIR)
 
 .o.c:

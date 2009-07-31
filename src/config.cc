@@ -25,7 +25,7 @@ http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 using namespace std;
 
-const char * ConfigVarsStr[]=
+const char * const ConfigVarsStr[]=
 {
   " ",
   "SERVER",
@@ -44,7 +44,7 @@ const char * ConfigVarsStr[]=
   " "
 };
 
-const char *SectionsStr[]=
+const char * const SectionsStr[]=
 {
   " ",
   "[CONFIG]",

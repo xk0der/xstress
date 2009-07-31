@@ -41,150 +41,161 @@ int threadForceQuit = false;
 
 void sigHandler(int iSig)
 {
-  unsigned int ii;
- 
-  threadForceQuit = true;
+    unsigned int ii;
 
-  if(pidCount>0 && pidList)
-  {
-    for(ii=0;ii<totThreads;ii++)
+    threadForceQuit = true;
+
+    if(pidCount>0 && pidList)
     {
-      if(pidList[ii]) kill(pidList[ii], SIGHUP);
-      pidList[ii] = 0;
+        for(ii=0;ii<totThreads;ii++)
+        {
+            if(pidList[ii]) kill(pidList[ii], SIGHUP);
+            pidList[ii] = 0;
+        }
     }
-  }
 }
 
 void threadSigHandler(int iSig)
 {
-  threadForceQuit = true;
+    threadForceQuit = true;
 }
 
 int main(int argc, const char *argv[])
 {
 
-  char buffer[1024];
-  int  fdSet;
-  sockaddr_in addr;
-  int Done = 0;
-  unsigned int ii;
-  int rv;
+    char buffer[1024];
+    int  fdSet;
+    sockaddr_in addr;
+    int Done = 0;
+    unsigned int ii;
+    int rv;
 
-  pidList = NULL;
-  pidCount = 0;
- 
-  UserInterface uiObj;
-  
-  signal(SIGINT, sigHandler);
-  
-  if(uiObj.processOptions(argc, argv)==false)
-  {
-    return 0;
-  }
-  
-  cout << VERSION << endl;
-  cout << COPYRIGHT << endl;
-  
-  Config configObj(uiObj.sConfigFile);
-  if(!configObj.okay())
-  {
-    cout << "Config file " << uiObj.sConfigFile << " Not found " << endl;
-    cout << "Please provide complete path to the xstress configuration file :";
-    cin >> uiObj.sConfigFile;
-    if(uiObj.sConfigFile.empty()) return 0;
+    pidList = NULL;
+    pidCount = 0;
+
+    UserInterface uiObj;
+
+    signal(SIGINT, sigHandler);
+
+    if(uiObj.processOptions(argc, argv)==false)
+    {
+        return 0;
+    }
+
+    cout << VERSION << endl;
+    cout << COPYRIGHT << endl;
+
     Config configObj(uiObj.sConfigFile);
-    if(!configObj.okay()) 
+    if(!configObj.okay())
     {
-      cout << "Config file " << uiObj.sConfigFile << " Not found " << endl;
-      cout << "Exiting!" << endl;
-      return 1;
-    }
-  }
-  
-
-  if(uiObj.override())
-  {
-    uiObj.setConfig(configObj);
-  }
-
-  debug("Debugging ON.");
-  
-  logger.setLogFile(configObj.sLogFile);
-
-
-  pidList = new unsigned int[configObj.uiThreads];
-  memset(pidList, sizeof(unsigned int), configObj.uiThreads);
-  totThreads = configObj.uiThreads;
-  pidCount = 0;
-
-  if(!pidList)
-  {
-    cout << "Error: Memory allocation error at" << __FUNCTION__ << " : " << __LINE__ << endl;
-    return 1;
-  }
-
-  for(ii=0;ii<configObj.uiThreads;ii++)
-  {
-    socket(AF_INET, SOCK_STREAM, 0);
-    
-    if(!threadForceQuit) rv = fork();
-    else break;
-
-    if(rv==0) /*This is the child*/
-    {
-
-      Thread threadObj(ii, configObj.uiMailsPerThread, &configObj);
-      if(threadObj.okay()) 
-      {
-        signal(SIGHUP, threadSigHandler);
-        cout << "Thread " << threadObj.getid() << " started!" << endl;
-        threadForceQuit = false;
-        while(!threadObj.finished() && !threadForceQuit)
+        cout << "Config file " << uiObj.sConfigFile << " Not found " << endl;
+        cout << "Please provide complete path to the xstress configuration file :";
+        cin >> uiObj.sConfigFile;
+        if(uiObj.sConfigFile.empty()) return 0;
+        Config configObj(uiObj.sConfigFile);
+        if(!configObj.okay()) 
         {
-          threadObj.process();
-          if(!threadObj.okay())
-          {
-            ;
-          }
+            cout << "Config file " << uiObj.sConfigFile << " Not found " << endl;
+            cout << "Exiting!" << endl;
+            return 1;
         }
-      }
-      if(threadForceQuit)
-      cout << "Thread " << threadObj.getid() << " forced to stop!" << endl;
-      else
-      cout << "Thread " << threadObj.getid() << " finished!" << endl;
-      return 0;
     }
-    else if(rv!=-1)
+
+
+    if(uiObj.override())
     {
-      pidList[ii] = rv;
-      pidCount++;
+        uiObj.setConfig(configObj);
+    }
+
+    debug("Debugging ON.");
+
+    logger.setLogFile(configObj.sLogFile);
+
+
+    pidList = new unsigned int[configObj.uiThreads];
+    memset(pidList, sizeof(unsigned int), configObj.uiThreads);
+    totThreads = configObj.uiThreads;
+    pidCount = 0;
+
+    if(!pidList)
+    {
+        cout << "Error: Memory allocation error at" << __FUNCTION__ << " : " << __LINE__ << endl;
+        return 1;
+    }
+
+    for(ii=0;ii<configObj.uiThreads;ii++)
+    {
+        socket(AF_INET, SOCK_STREAM, 0);
+
+        if(!threadForceQuit) rv = fork();
+        else break;
+
+        if(rv==0) /*This is the child*/
+        {
+
+            Thread threadObj(ii, configObj.uiMailsPerThread, &configObj);
+            if(threadObj.okay()) 
+            {
+                signal(SIGHUP, threadSigHandler);
+                cout << "Thread " << threadObj.getid() << " started!" << endl;
+                threadForceQuit = false;
+                while(!threadObj.finished() && !threadForceQuit)
+                {
+                    threadObj.process();
+                    /*
+                     *  threadObj.okay() returns false if xstress is not able to
+                     *  establish connection to the server for whatever reasons.
+                     *
+                     *   XXX TODO Probably we can add something here, so that 
+                     *   after certain number of retires xstress stoppes
+                     *   trying to reconnect.
+                     *
+                     *   And obvisouly, the number of retires got to be configurable.
+                     *
+                    if(!threadObj.okay())
+                    {
+                        ;
+                    }
+                    */
+                }
+            }
+            if(threadForceQuit)
+                cout << "Thread " << threadObj.getid() << " forced to stop!" << endl;
+            else
+                cout << "Thread " << threadObj.getid() << " finished!" << endl;
+            return 0;
+        }
+        else if(rv!=-1)
+        {
+            pidList[ii] = rv;
+            pidCount++;
+        }
+        else
+        {
+            cout << "Error creating thread with id " << ii  << endl;
+            totThreads--;
+        }
+    }
+
+    if(totThreads>0)
+    {
+        cout << "Waiting for " << pidCount << " threads to finish " << endl; 
+
+        for(ii=0;ii<totThreads;ii++)
+        {
+            if(pidList[ii]) waitpid(pidList[ii], NULL, 0);
+            pidList[ii] = 0;
+            cout << "Number of threads remaining " << pidCount - (ii+1) << endl;
+        }
+
+        cout << "All Threads finished, exiting!" << endl;
     }
     else
     {
-      cout << "Error creating thread with id " << ii  << endl;
-      totThreads--;
-    }
-  }
-
-  if(totThreads>0)
-  {
-    cout << "Waiting for " << pidCount << " threads to finish " << endl; 
-
-    for(ii=0;ii<totThreads;ii++)
-    {
-      if(pidList[ii]) waitpid(pidList[ii], NULL, 0);
-      pidList[ii] = 0;
-      cout << "Number of threads remaining " << pidCount - (ii+1) << endl;
+        cout << "FATAL Error: Unable to spwan even a single thread!!" << endl;
     }
 
-    cout << "All Threads finished, exiting!" << endl;
-  }
-  else
-  {
-    cout << "FATAL Error: Unable to spwan even a single thread!!" << endl;
-  }
-
-  return 0;
+    return 0;
 }
 
 void debug(string _msg)

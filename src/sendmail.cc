@@ -17,7 +17,7 @@
 
 using namespace std;
 
-const char *MIMETypeStr[]=
+const char * const MIMETypeStr[]=
 {
     " ",
     "plain",
@@ -108,7 +108,7 @@ int SendMail::changeState(int sockState)
     int rv = NO_ERR;
     if(iState == FINISHED) return 0;
 
-    //cout << "last State = " << uiLastState << " Curr State " << iState << endl; 
+    cout << "last State = " << uiLastState << " Curr State " << iState << endl; 
 
     if(sockState==READ_READY)
     {
@@ -129,7 +129,7 @@ int SendMail::changeState(int sockState)
     }
     else if(sockState==WRITE_READY)
     {
-        //cout << "WRITE_READY" << endl;
+        cout << "WRITE_READY" << endl;
         uiLastState = iState;
         switch(iState)
         {
