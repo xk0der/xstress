@@ -7,7 +7,7 @@
 # This software and related files are licensed under GNU GPL version 2
 # Please visit the following webpage for more details
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-# or read the accopanying LICENSE file.
+# or read the accompanying LICENSE file.
 # 
 # View the README file for usage directions
 # and help of editing the configuration file
@@ -18,13 +18,16 @@ SRC_DIR=src
 INCLUDE_DIR=include
 BIN_DIR=bin
 
-OBJS=$(OBJ_DIR)/xstress.o $(OBJ_DIR)/sendmail.o \
-     $(OBJ_DIR)/config.o \
-     $(OBJ_DIR)/thread.o \
-     $(OBJ_DIR)/logger.o \
-     $(OBJ_DIR)/userinterface.o
+OBJS=xstress.o \
+	 sendmail.o \
+     config.o \
+     thread.o \
+     logger.o \
+     userinterface.o
 
-SRC=$(addsuffix .cc, $(basename $(subst $(OBJ_DIR),$(SRC_DIR),$(OBJS))))
+SRC=$(addsuffix .cc, $(basename $(OBJS)))
+OUT_OBJS=$(addprefix $(OBJ_DIR)/,$(OBJS))
+IN_SRC=$(addprefix $(SRC_DIR)/,$(SRC))
 
 B64_SRC=$(SRC_DIR)/b64.c
 B64_OUT=$(BIN_DIR)/base64
@@ -36,28 +39,27 @@ GCC=gcc
 LD=ld
 
 
-.PHONY: all
-.PHONY: clean
+.PHONY: all clean mkobjdir
 
-all: $(B64_OUT) $(PROG)
+all: mkobjdir $(B64_OUT) $(PROG)
 	cp -i xstress.conf $(BIN_DIR)
 
-$(OBJS): $(SRC)
-	$(GPP) -O3 -c $(SRC) -I $(INCLUDE_DIR)
-	mv *.o $(OBJ_DIR)
-
-.o.c:
-	$(GPP) -c
+$(PROG): $(OUT_OBJS)
+	$(GPP) $(OUT_OBJS) -o $(PROG)
 
 $(B64_OUT): $(BASE_SRC)
 	$(GCC) $(B64_SRC) -o $(B64_OUT)
 
-$(PROG): $(OBJS)
-	$(GPP) -o $(PROG) $(OBJS)
+%.o:
+	$(GPP) -c $(subst $(OBJ_DIR), $(SRC_DIR), $(addsuffix .cc, $(basename  $@))) -o $@ -I${INCLUDE_DIR}
+
+mkobjdir:
+	if [ -d ${OBJ_DIR} ]; then echo ""; else mkdir ${OBJ_DIR}; fi
+
 
 clean:
 	rm -f *.o
-	rm -f $(OBJS)
+	rm -f $(OUT_OBJS)
 	rm -f $(PROG)
 	rm -f $(B64_OUT)
 

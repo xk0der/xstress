@@ -1,0 +1,6 @@
+*.o
+*.swp
+/obj/
+/bin/xstress
+/bin/xstress.conf
+/bin/base64
