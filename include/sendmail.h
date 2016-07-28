@@ -29,6 +29,7 @@ class SendMail
   unsigned int uiStateCounter;
   unsigned int uiServerPort;
   string sServerIP;
+  string sFQDNHelo;
   int iState;
   int iAuthState;
   int bAuthDone;
@@ -67,6 +68,7 @@ class SendMail
   void setAttachment(string _sAttachment);
   
   int setServer(string _ip, unsigned int _port);
+  int setHelo(string _helo);
   void reset();
   void disconnect();
 

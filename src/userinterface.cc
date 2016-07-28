@@ -45,6 +45,8 @@ const char *cmdOptStr[]=
   "--auth-type",
   "-d",
   "--debug",
+  "-l",
+  "--helo",
   " "
 };
 
@@ -64,6 +66,8 @@ void UserInterface::setConfig(Config &configObj)
   
   if(!sAuthType.empty()) configObj.sAuthType = sAuthType;
 
+  if(!sFQDNHelo.empty()) configObj.sFQDNHelo = sFQDNHelo;
+
 }
 
 unsigned int UserInterface::override()
@@ -82,6 +86,7 @@ UserInterface::UserInterface()
   sUsername = "";
   sPassword = "";
   sAuthType = "";
+  sFQDNHelo = "";
 
   sConfigFile = DEFAULT_CONFIG_FILE;  
   uiOverride = false;
@@ -217,6 +222,20 @@ int UserInterface::processOptions(int argc, const char *argv[])
             {
               ii++;
               sServerIP = argv[ii];
+              uiOverride = true;
+            }
+            else
+            {
+              cout << "Option " << argv[ii] << " requires a value" << endl;
+              iRetVal = false;
+            }
+            break;
+      case CO_HELO:
+      case CO_L:
+            if(ii<(argc-1))
+            {
+              ii++;
+              sFQDNHelo = argv[ii];
               uiOverride = true;
             }
             else

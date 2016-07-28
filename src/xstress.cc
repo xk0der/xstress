@@ -49,7 +49,10 @@ void sigHandler(int iSig)
     {
         for(ii=0;ii<totThreads;ii++)
         {
-            if(pidList[ii]) kill(pidList[ii], SIGHUP);
+            /*  If for whatever reason you receive -1 as a PID
+                SKIP IT! Otherwise you kill ALL running processes
+                of a user, which is BAD and NEVER intended! */
+            if(pidList[ii] && ((int)pidList[ii]) != -1) kill(pidList[ii], SIGHUP);
             pidList[ii] = 0;
         }
     }

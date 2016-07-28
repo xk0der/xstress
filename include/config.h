@@ -33,6 +33,7 @@ class Config
   string sUsername;
   string sPassword;
   string sAuthType;
+  string sFQDNHelo;
 
   private:
   vector <string> toList; 
