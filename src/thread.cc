@@ -97,6 +97,7 @@ void Thread::initMailObj()
     mailObj.iSock = iSockFd;
     mailObj.reset();
     mailObj.setServer(configObj->sServerIP, configObj->uiServerPort);
+    mailObj.setHelo(configObj->sFQDNHelo);
     mailObj.setAuthInfo(configObj->sUsername, configObj->sPassword, configObj->sAuthType);
     mailObj.setMailInfo(configObj->getTo(),
             configObj->getFrom(),

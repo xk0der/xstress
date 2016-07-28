@@ -33,6 +33,7 @@ class UserInterface
    string sUsername;
    string sPassword;
    string sAuthType;
+   string sFQDNHelo;
 
    UserInterface();
    int processOptions(int argc, const char *argv[]);

@@ -41,6 +41,7 @@ const char * const ConfigVarsStr[]=
   "PASSWORD",
   "AUTH_TYPE",
   "DEBUG",
+  "HELO",
   " "
 };
 
@@ -131,6 +132,7 @@ Config::Config(string sConfigFile)
   sPassword = "";
   sUsername = "";
   sAuthType = "";
+  sFQDNHelo = "localhost";
 
   if(!filp.fail())
   {
@@ -250,6 +252,9 @@ Config::Config(string sConfigFile)
               break;
             case C_MAX_RECIPIENTS:
               uiMaxRecipients = atoi(RValue.c_str());
+              break;
+            case C_HELO:
+              sFQDNHelo = RValue;
               break;
           }
 

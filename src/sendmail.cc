@@ -108,7 +108,7 @@ int SendMail::changeState(int sockState)
     int rv = NO_ERR;
     if(iState == FINISHED) return 0;
 
-    cout << "last State = " << uiLastState << " Curr State " << iState << endl; 
+    //cout << "last State = " << uiLastState << " Curr State " << iState << endl; 
 
     if(sockState==READ_READY)
     {
@@ -129,7 +129,7 @@ int SendMail::changeState(int sockState)
     }
     else if(sockState==WRITE_READY)
     {
-        cout << "WRITE_READY" << endl;
+        //cout << "WRITE_READY" << endl;
         uiLastState = iState;
         switch(iState)
         {
@@ -259,9 +259,10 @@ int SendMail::run(int sockState)
             break;         
         case EHLO:
             {
-                string sBuf = "EHLO localhost";
+                string sBuf = "EHLO " + sFQDNHelo;
                 sBuf.append("\r\n");
-                debug("C: EHLO localhost");
+                // cout << "Send Buffer = " << sBuf << "HELO content = " << sFQDNHelo << endl;
+                debug("C: EHLO " + sFQDNHelo);
                 send(iSock, sBuf.c_str(), sBuf.length(), 0);
             }
             break;          
@@ -731,6 +732,12 @@ int SendMail::setServer(string _ip, unsigned int _port)
 {
     sServerIP = _ip;
     uiServerPort = _port;
+    return NO_ERR;
+}
+
+int SendMail::setHelo(string _helo)
+{
+    sFQDNHelo = _helo;
     return NO_ERR;
 }
 

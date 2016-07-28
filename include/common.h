@@ -39,8 +39,9 @@ const string DEFAULT_CONFIG_FILE="xstress.conf";
 const string DEFAULT_LOG_FILE="xstress.log";
 const int DEFAULT_CACHE_THRESHOLD = 1024*4;
 
-const string VERSION="xstress version 0.375b - xk0derz SMTP Stress Tester";
+const string VERSION="xstress version 0.40 - xk0derz SMTP Stress Tester";
 const string COPYRIGHT="(c) 2007-09 Amit Singh (aka xk0der), amit@xkoder.com, http://xkoder.com\n"
+           "Additional changes made 2016-07 by Matthias Egger, https://github.com/chmatse/xstress\n"
            "This software and related files are licensed under GNU GPL version 2\n"
            "Please visit the following webpage for more details\n"
            "http://www.gnu.org/licenses/old-licenses/gpl-2.0.html\n"
@@ -89,6 +90,9 @@ const string HELP_MSG =
 "-d, --debug                    If this switch is provided, verbose debug messages\n"
 "                               With complete traffic will be printed on screen.\n"
 "                               Usefull for checking if things are working as expected.\n"
+"-l <FQDN>, --helo <FQDN>       Which Full Quallified Domain Name should be used as the\n"
+"                               HELO/EHLO Hostname. If not specified, localhost is used\n"
+"                               (which is not a FQDN but at least a valid entry.)\n"
 "--license                      View disclaimer and short license notice.\n"
 "\n"
 "**Note: command line options always override configuration file settings\n";
@@ -121,6 +125,8 @@ enum eCmdOpts
   CO_AUTH_TYPE,
   CO_D,
   CO_DEBUG,
+  CO_L,
+  CO_HELO,
   CO_MAX
 };
 
@@ -154,6 +160,7 @@ enum eConfigVars
   C_PASSWORD,
   C_AUTH_TYPE,
   C_DEBUG,
+  C_HELO,
   C_MAX
 };
 
