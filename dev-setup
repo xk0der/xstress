@@ -1,0 +1,27 @@
+#!/bin/bash
+
+docker ps | grep "xstress-container" | cut -d' ' -f1  | xargs docker rm -f
+docker ps | grep "maildev-container" | cut -d' ' -f1  | xargs docker rm -f
+
+docker run -d --name maildev-container -p 1080:1080 -p 1025:1025 maildev/maildev
+docker run -d --name xstress-container -it xk0der/xstress
+
+docker network rm xstress-maildev-network
+docker network create xstress-maildev-network
+docker network connect xstress-maildev-network xstress-container
+docker network connect xstress-maildev-network maildev-container
+
+MAILDEV_IP=`docker network inspect xstress-maildev-network  | grep "Name\|IPv4" | sed -n '/maildev-container/{n;p;}' | cut -d: -f2 | cut -d/ -f1 | cut -d\" -f2`
+echo ${MAILDEV_IP}
+
+echo "#!/bin/bash" > update_conf_server_ip.sh
+echo "" >> update_conf_server_ip.sh
+echo "sed -i \"s/^SERVER=.*$/SERVER\=${MAILDEV_IP}/\" ./bin/xstress.conf" >> update_conf_server_ip.sh
+echo "sed -i \"s/^PORT=.*$/PORT\=1025/\" ./bin/xstress.conf" >> update_conf_server_ip.sh
+
+chmod +x update_conf_server_ip.sh
+
+docker cp update_conf_server_ip.sh xstress-container:/xstress/update_conf_server_ip.sh
+docker exec xstress-container bash -c ./update_conf_server_ip.sh 
+
+rm update_conf_server_ip.sh
