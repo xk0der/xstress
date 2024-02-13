@@ -1,28 +1,23 @@
-xstress version 0.40 beta - xk0derz SMTP Stress Tester
+## xstress version 0.40 beta - xk0derz SMTP Stress Tester
 
-http://xstress.sourceforge.net
+(c) Amit Singh, amit@xkoder.com    
+http://xkoder.com    
+With contributions from [Matthias Egger](https://github.com/chmatse) ❤️    
 
-(c) Amit Singh, amit@xkoder.com
 
-http://xkoder.com
+This software and related files are licensed under GNU GPL version 2    
+Please visit the following webpage for more details    
+http://www.gnu.org/licenses/old-licenses/gpl-2.0.html    
+or read the accompanying LICENSE file.    
 
-Additional Changes added made by Matthias Egger
-
-https://github.com/chmatse/xstress
-
-This software and related files are licensed under GNU GPL version 2
-Please visit the following webpage for more details
-http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-or read the accompanying LICENSE file.
-
-Special thanks to Bob Trower for the base64 utility he made
-http://base64.sourceforge.net/
-This utility is licensed under the MIT license
-please see the b64.c source file for the complete license.
+Special thanks to Bob Trower for the base64 utility he made    
+http://base64.sourceforge.net/    
+This utility is licensed under the MIT license    
+please see the b64.c source file for the complete license.    
 
 
 
-::: Introduction :::
+### Introduction
 xstress is an SMTP Stress Testing Tool. Essentially xstress creates multiple
 connections to (your) mail server and sends multiple mails repeatedly over all
 connections.
@@ -45,22 +40,40 @@ sending mails:
 xstress randomly makes a combination from the available list and sends mails to
 the configured SMTP server.
 
+### Quick Setup
+If you have Docker, clone the repo 
 
+    $ git clone https://github.com/xk0der/xstress.git
 
-::: Building binary :::
+And run the following command to test out xstress
 
-uncompress the source archive using the following command
+    $ ./dev-setup
 
-$ tar -zxvf xstress-src-n.nn-mmm-YYYYMMDD.tar.gz
+Dev-Setup will create two containers, a test SMPT server using https://maildev.github.io/maildev/    
+And an xstress container, pre-configured with test server's IP and port
 
-where n.nn-mm-YYYYMMDD are the version and timestamp respectively.
-example: xstress-src-1.00-stable-20010703.tar.gz
+Now run the following command to get inside the xstress docker container
 
-Now, Switch user to root (using the su command) and type the following command
-from the directory where you have un-compressed the xstress source archive and
-run the following command to build the xstress binary.
+    $ docker exec -it xstress-container bash
 
-# make
+From inside the container you can now execute ./xstress as needed
+
+    $ cd /bin
+    # ./xstress
+
+Check the mails being sent at [127.0.0.1:1080](http://127.0.0.1:1080)
+
+### Compiling from source
+
+Make sure you the C++ tooling and make tools installed
+
+Clone the repo 
+
+    $ git clone https://github.com/xk0der/xstress.git
+
+From inside the repo run
+
+    # ./build
 
 The above command will create the xtress binary in the bin folder and copy the
 default xstress.conf file to the bin folder. If the file already exists you'll
@@ -69,39 +82,19 @@ be aksed if you want to over-write it or not.
 The make command also creates the base64 utility used by xstress and copies it
 to the bin directory
 
-** NOTE: base64 utility is required for xstress to send binary attachments
-   properly.
-
-If you get any error while doing a `make', run the following command befor you
-do make.
-
-# make clean
-
-Alternatively you may run the build shell script by typing
-
-# ./build
-
-which runs `make clean' first and then does a `make'
+*NOTE: base64 utility is required for xstress to send binary attachments properly.*
 
 
+### Usage and command line options
 
-::: Usage and command line options :::
-NOTE: xstress requires GNU GCC C/C++ compiler for source code compilation and
-libc for execution.
-
-Most linux distribution (like Fedora Core, Red Hat) bundle these in their
-disribution, but distros like Ubuntu, normally do not have these packages
-bundled. You'll need to download and install these packages to compile the
-xstress source and run it properly.
-
-
-Move to the bin folder and type ./xstress to invoke the tool.
+Move to the bin folder and type `./xstress` to invoke the tool.
 
 Syntax:
+    
     $ xstress [options]
 
-Here options are one or more of the following...
-
+Here options are one or more of the following:
+```
 -v, --ver, --version           Display xstress version and exit.
 
 -h, --help                     Display this help message
@@ -151,12 +144,12 @@ Here options are one or more of the following...
 --logfile <filename>           Set alternate log file to use, instead of the
                                default 'xstress.log' file. `filename` is the 
                                full path to the alternate log file.
+```
+*Note: command line options always override configuration file settings*
 
-**Note: command line options always override configuration file settings
 
 
-
-::: Configuration file :::
+### Configuration file
 By default xstress reads its configuration from the file 'xstress.conf'. This
 file should be present from where you invoke the xstress program.
 
@@ -167,6 +160,7 @@ COMMENTS start with the hash (#) sign on the 'first column only'. Blank lines
 are ignored. The parser is not designed to handle extra spaces so don't play
 with them.
 
+```
 Var = Value :  will NOT work
 Var=Val     : will work!
  Var=Val    : will NOT work
@@ -281,14 +275,15 @@ REPORT_AFTER    Specify the number of mails, after which xstress will print a
                 If you specify some amount of mails, you may like to put a
                 large number for TIMEOUT, so that before calling it quit,
                 xstress will wait to see if the server responds.
+```
 
 
-
-::: Example attachment and body files :::
-The bin directory contains some example body and attachment files. The default
+### Example attachment and body files
+The `bin` directory contains some example body and attachment files. The default
 configuration file xstress.conf lists these files to be used as body and
 attachment for the mail.
 
+```
     Body Files:
         body1.txt - Plain Text file
         body_dir/body2.txt - Plain Text file
@@ -296,5 +291,4 @@ attachment for the mail.
     Attachment Files:
         attach_dir/images_dir/xstress.jpg - Image file
         attach_dir/attach1.htm - HTML File
-
-* The source code has been tested with GNU C/C++ compiler version 4.9.2 20160728 
+```
